@@ -7,7 +7,7 @@ const isGithubPages = process.env.GITHUB_PAGES === "true";
 const nextConfig: NextConfig = {
   output: isGithubPages ? "export" : undefined,
   basePath,
-  assetPrefix: basePath ? `${basePath}/` : undefined,
+  assetPrefix: basePath || undefined,
   images: {
     unoptimized: true,
   },

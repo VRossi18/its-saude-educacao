@@ -37,8 +37,8 @@ Variáveis necessárias:
 - Redirect URLs:
   - `http://localhost:3001/auth/callback`
   - `http://localhost:3001/auth/reset-password`
-  - `https://<user>.github.io/its-educacao-portal-front/auth/callback`
-  - `https://<user>.github.io/its-educacao-portal-front/auth/reset-password`
+  - `https://<user>.github.io/its-saude-educacao/auth/callback`
+  - `https://<user>.github.io/its-saude-educacao/auth/reset-password`
 
 ## Desenvolvimento
 
@@ -66,7 +66,7 @@ pnpm ci:verify         # lint + typecheck + test (CI local)
 pnpm build
 
 # Simular build do GitHub Pages localmente
-GITHUB_PAGES=true NEXT_PUBLIC_BASE_PATH=/its-educacao-portal-front pnpm build
+GITHUB_PAGES=true NEXT_PUBLIC_BASE_PATH=/its-saude-educacao pnpm build
 ```
 
 O deploy no GitHub Pages gera a pasta `out/` com `output: 'export'`.
@@ -99,9 +99,15 @@ O workflow [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) ex
 | `NEXT_PUBLIC_SUPABASE_URL` | Build estático + `generateStaticParams` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Build estático |
 
+### Configuração do GitHub Pages
+
+Em **Settings → Pages → Build and deployment**, defina **Source** como **GitHub Actions** (não “Deploy from a branch”).
+
+Se o environment `github-pages` tiver regra de aprovação manual, o deploy fica pendente até alguém aprovar.
+
 ### URL de produção (GitHub Pages)
 
-`https://<user>.github.io/its-educacao-portal-front/`
+`https://<user>.github.io/its-saude-educacao/`
 
 ## Integração Supabase
 

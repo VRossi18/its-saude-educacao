@@ -3,7 +3,7 @@ name: Pipeline
 env:
    NODE_VERSION: '24.15.0'
    PNPM_VERSION: '10.15.0'
-   NEXT_PUBLIC_BASE_PATH: '/its-educacao-portal'
+   NEXT_PUBLIC_BASE_PATH: '/its-saude-educacao'
 
 on:
    push:
@@ -80,6 +80,14 @@ jobs:
               NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
               NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
            run: pnpm build
+
+         - name: Verify static export output
+           if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+           run: test -f out/index.html
+
+         - name: Fix artifact permissions
+           if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+           run: chmod -c -R +rX out
 
          - name: Audit dependencies
            run: pnpm audit --audit-level=high
