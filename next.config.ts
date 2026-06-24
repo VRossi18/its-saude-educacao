@@ -1,10 +1,18 @@
 import path from "path";
 import type { NextConfig } from "next";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+
 const nextConfig: NextConfig = {
+  output: isGithubPages ? "export" : undefined,
+  basePath,
+  assetPrefix: basePath ? `${basePath}/` : undefined,
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: isGithubPages,
   turbopack: {
-    // Caminho absoluto do projeto — evita resolver módulos no diretório pai
-    // (onde existe um pnpm-lock.yaml sem as dependências deste app).
     root: path.resolve(process.cwd()),
   },
 };

@@ -1,0 +1,105 @@
+name: Pipeline
+
+env:
+   NODE_VERSION: '24.15.0'
+   PNPM_VERSION: '10.15.0'
+   NEXT_PUBLIC_BASE_PATH: '/its-educacao-portal'
+
+on:
+   push:
+      branches: [main]
+   pull_request:
+      branches: [main]
+
+concurrency:
+   group: ${{ github.workflow }}-${{ github.ref }}
+   cancel-in-progress: true
+
+permissions:
+   contents: read
+   pages: write
+   id-token: write
+
+jobs:
+   lint-and-test:
+      name: Lint and test
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v5
+
+         - name: Install pnpm
+           uses: pnpm/action-setup@v4
+           with:
+              version: ${{ env.PNPM_VERSION }}
+
+         - name: Install Node.js
+           uses: actions/setup-node@v5
+           with:
+              node-version: ${{ env.NODE_VERSION }}
+              cache: pnpm
+
+         - name: Install dependencies
+           run: pnpm install --frozen-lockfile
+
+         - name: Lint
+           run: pnpm lint
+
+         - name: Typecheck
+           run: pnpm typecheck
+
+         - name: Test
+           run: pnpm test
+
+   build-audit-package:
+      name: Build, audit and package
+      needs: lint-and-test
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v5
+
+         - name: Install pnpm
+           uses: pnpm/action-setup@v4
+           with:
+              version: ${{ env.PNPM_VERSION }}
+
+         - name: Install Node.js
+           uses: actions/setup-node@v5
+           with:
+              node-version: ${{ env.NODE_VERSION }}
+              cache: pnpm
+
+         - name: Install dependencies
+           run: pnpm install --frozen-lockfile
+
+         - name: Build for GitHub Pages
+           env:
+              GITHUB_PAGES: 'true'
+              NEXT_PUBLIC_BASE_PATH: ${{ env.NEXT_PUBLIC_BASE_PATH }}
+              NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+              NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+           run: pnpm build
+
+         - name: Audit dependencies
+           run: pnpm audit --audit-level=high
+           continue-on-error: true
+
+         - name: Upload Pages artifact
+           if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+           uses: actions/upload-pages-artifact@v4
+           with:
+              path: out
+
+   deploy-pages:
+      name: Deploy GitHub Pages
+      needs: build-audit-package
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      environment:
+         name: github-pages
+         url: ${{ steps.deployment.outputs.page_url }}
+      steps:
+         - name: Deploy to GitHub Pages
+           id: deployment
+           uses: actions/deploy-pages@v4

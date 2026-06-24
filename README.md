@@ -5,6 +5,7 @@ Front-end da plataforma de cursos médicos da ITS Educação, construído com Ne
 ## Requisitos
 
 - Node.js 20+
+- pnpm 10+
 - Projeto Supabase configurado (Auth + tabelas `profiles`, `cursos`, `curso_videos`)
 
 ## Configuração
@@ -12,7 +13,7 @@ Front-end da plataforma de cursos médicos da ITS Educação, construído com Ne
 1. Instale as dependências:
 
 ```bash
-npm install
+pnpm install
 ```
 
 2. Copie o arquivo de ambiente:
@@ -32,18 +33,43 @@ Variáveis necessárias:
 
 4. No **Supabase Dashboard → Authentication → URL Configuration**, cadastre:
 
-- Site URL: `http://localhost:3001`
+- Site URL (dev): `http://localhost:3001`
 - Redirect URLs:
   - `http://localhost:3001/auth/callback`
   - `http://localhost:3001/auth/reset-password`
+  - `https://<user>.github.io/its-educacao-portal-front/auth/callback`
+  - `https://<user>.github.io/its-educacao-portal-front/auth/reset-password`
 
 ## Desenvolvimento
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 O front sobe em [http://localhost:3001](http://localhost:3001).
+
+## Testes e qualidade
+
+```bash
+pnpm test              # testes unitários (Vitest)
+pnpm test:watch        # modo watch
+pnpm test:coverage     # cobertura
+pnpm typecheck         # verificação TypeScript
+pnpm lint              # ESLint
+pnpm ci:verify         # lint + typecheck + test (CI local)
+```
+
+## Build
+
+```bash
+# Desenvolvimento / servidor Node
+pnpm build
+
+# Simular build do GitHub Pages localmente
+GITHUB_PAGES=true NEXT_PUBLIC_BASE_PATH=/its-educacao-portal-front pnpm build
+```
+
+O deploy no GitHub Pages gera a pasta `out/` com `output: 'export'`.
 
 ## Rotas
 
@@ -58,19 +84,32 @@ O front sobe em [http://localhost:3001](http://localhost:3001).
 | `/cursos/[id]` | Detalhe do curso com vídeos (protegida) |
 | `/perfil` | Perfil do usuário (protegida) |
 
-## Scripts
+## CI/CD (GitHub Actions)
 
-- `npm run dev` — servidor de desenvolvimento
-- `npm run build` — build de produção
-- `npm run start` — servidor de produção
-- `npm run lint` — lint do projeto
+O workflow [`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml) executa:
+
+1. `pnpm lint` + `pnpm typecheck` + `pnpm test`
+2. `pnpm build` com `GITHUB_PAGES=true` (artefato em `out/`)
+3. Deploy automático no GitHub Pages (branch `main`)
+
+### Secrets necessários no repositório
+
+| Secret | Uso |
+|--------|-----|
+| `NEXT_PUBLIC_SUPABASE_URL` | Build estático + `generateStaticParams` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Build estático |
+
+### URL de produção (GitHub Pages)
+
+`https://<user>.github.io/its-educacao-portal-front/`
 
 ## Integração Supabase
 
 - **Auth:** login, signup, recuperação e reset de senha via `@supabase/supabase-js`
-- **Sessão:** cookies gerenciados por `@supabase/ssr` + middleware que renova a sessão
-- **Dados:** cursos e perfil consultados diretamente nas tabelas Supabase
-- **Clientes:** `src/utils/supabase/client.ts` (browser) e `server.ts` (Server Components / Route Handlers)
+- **Sessão:** cookies gerenciados por `@supabase/ssr` + `proxy.ts` (dev/Node)
+- **GitHub Pages:** proteção de rotas via guarda client-side no layout autenticado
+- **Dados:** cursos e perfil consultados nas tabelas Supabase
+- **Clientes:** `src/utils/supabase/client.ts` (browser) e `server.ts` (Server Components)
 
 ## Especificações
 

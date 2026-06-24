@@ -1,9 +1,6 @@
 import { createClient } from "@/utils/supabase/client";
+import { sortVideos } from "@/lib/cursos-utils";
 import type { Curso, CursoVideo } from "@/lib/types/api";
-
-function sortVideos(videos: CursoVideo[]): CursoVideo[] {
-  return [...videos].sort((a, b) => a.ordem - b.ordem);
-}
 
 export async function listCursos(): Promise<Curso[]> {
   const supabase = createClient();
